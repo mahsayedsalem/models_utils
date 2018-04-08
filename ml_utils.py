@@ -22,6 +22,98 @@ from sklearn.tree import DecisionTreeClassifier
 import warnings 
 warnings.filterwarnings("ignore")
 
+
+'''
+#######################################################################
+
+Special Case Functions:
+    
+    KNN_Tuning:
+        "A function used to fine tune the value of k, it tries to find the K that fits your data the best." 
+        Args:
+            1) the images
+            2) the labels
+            3) the percentage of the train-test splitting 
+            4) the smallest value which we will start from
+            5) the largest values which we will incerement all values till we reach
+            ## Normally I send the floor as 1, and ceil as 25. But you can make the range smaller or larger according to your preference
+        outputs:
+            1) A print of the best fit K and it's accuracy in the dataset
+            1) returns the best fit k
+    
+    KNN:
+        Args:
+            1) the images
+            2) the labels
+            3) the percentage of the train-test splitting
+            4) the value of k
+            
+        outputs:
+            1) prints the train accuracy
+            2) prints the val accuracy
+            3) the accuracy report
+            4) confusion matrix
+    
+    random_forest:
+        Args:
+            1) the images
+            2) the labels
+            3) the percentage of the train-test splitting
+            4) the value of n
+            
+        outputs:
+            1) prints the train accuracy
+            2) prints the val accuracy
+            3) the accuracy report
+            4) confusion matrix
+    ###Comment: I haven't implemented a fine-tune on the n yet, if anyone did, feel free to pull request
+        
+
+Functions:
+    
+        Args:
+            1) the images
+            2) the labels
+            3) the percentage of the train-test splitting
+            
+        outputs:
+            1) prints the train accuracy
+            2) prints the val accuracy
+            3) the accuracy report
+            4) confusion matrix
+    
+A Full Check Function:
+        Args:
+            1) the images
+            2) the labels
+            3) the percentage of the train-test splitting
+            4) the value of k for KNN
+            5) the value of n for Random Forest
+            
+        outputs:
+            1) prints the train accuracy of each classifier
+            2) prints the val accuracy of each classifier
+            3) the accuracy report of each classifier
+            4) confusion matrix of each classifier
+            5) A table of the accuracies of the classifiers sorted according to the val accuracy
+    
+Classifiers:
+    
+        'Support Vector Machines', 
+        'KNN', 
+        'Logistic Regression', 
+        'Random Forest', 
+        'Naive Bayes', 
+        'Perceptron', 
+        'Stochastic Gradient Decent', 
+        'Linear SVC', 
+        'Decision Tree'
+
+#######################################################################
+
+'''
+
+
 def accuracy_report(y_test, y_pred):
     
     cm = confusion_matrix(y_test,y_pred)
@@ -48,10 +140,10 @@ def KNN(x, y, percentage, k):
     return acc_train, acc_test
     
 
-def ml_KNN_tuning(x, y, percentage):
+def ml_KNN_tuning(x, y, percentage, floor_val, ceil_val):
     
     x_train,x_test,y_train,y_test = train_test_split(x,y,test_size = percentage)
-    neig = np.arange(1, 25)
+    neig = np.arange(floor_val, ceil_val)
     train_accuracy = []
     test_accuracy = []
     
@@ -59,8 +151,6 @@ def ml_KNN_tuning(x, y, percentage):
         knn = KNeighborsClassifier(n_neighbors=k)
         knn.fit(x_train,y_train)
         train_accuracy.append(knn.score(x_train, y_train))
-        filename = 'Knn_tuning_model_K_'+str(k)+'.sav'
-        joblib.dump(knn, filename)
         test_accuracy.append(knn.score(x_test, y_test))
     plt.figure(figsize=[13,8])
     plt.plot(neig, test_accuracy, label = 'Testing Accuracy')

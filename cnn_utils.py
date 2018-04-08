@@ -19,13 +19,7 @@ import sklearn
 from sklearn import model_selection
 from sklearn.model_selection import train_test_split, KFold, cross_val_score, StratifiedKFold, learning_curve, GridSearchCV
 from sklearn.metrics import confusion_matrix, make_scorer, accuracy_score
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC, LinearSVC
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 import keras
 from keras import backend as K
 from keras.callbacks import Callback, EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
@@ -45,10 +39,14 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+
 '''
 #######################################################################
-The first section is dedicated to learning functions responsible of 
+The first section is dedicated to functions responsible of 
 plotting learning curves and confusion matrices.
+
+## No Args needed, they are already embedded in the networks. 
+
 #######################################################################
 '''
 
@@ -145,6 +143,9 @@ def plot_accuracy_reports(history, log, y_true, y_pred_classes, labels):
 '''
 #######################################################################
 Data Generator
+# No Args needed, they are already embedded in the networks. 
+## You can change the variables values when needed. The default vales
+## are the most used in most projects.
 #######################################################################
 '''
 
@@ -167,6 +168,53 @@ def data_denerator():
 '''
 #######################################################################
 Classification Networks
+
+# Args:
+       1) Training Photos
+       2) Training Photos Labels
+       3) Test Photos
+       4) Test Photos Labels
+       5) Number of classes in your dataset
+       6) Batch Size
+       7) Number of epochs
+       8,9,10) Image Size(rows, columns, channels)
+       11) The activation layer in the hidden layers, should be parsed as string
+       12) The activation layer in the output layer, should be parsed as string
+       13) The labels in your dataset (Should be a dictionary, each one-hot value corresponds to a string of the label)
+       14) The name of the log which will be saved and used to be plotted. Use a unique string
+       15) class weights. can be obtained using the following code:
+        from sklearn.utils import class_weight
+        class_weight2 = class_weight.compute_class_weight('balanced', np.unique(y_train), y_train)
+       16) A unique string with extension '.h5' which the model will be saved by, then you can load the model directly later. 
+        
+# Output:
+        1) A test accuracy print
+        2) Classification Report
+        3) A line plot of both the validation and train sets accuracy behavior throughout the training
+        4) 2 plots, the first is like the previos, the second is for loss behavior throughout the training
+        5) A confusion matrix(The number of false-postives, and false-negatives, etc)
+        6) A saved model of extention .h5 which you can load later and predict using it without having to go through the train phase again
+        ## To load the model you can use the following codes ( assume while training you parsed the model_unique_name = 'Mahmoud.h5')
+        ## When loading :
+            from keras.models import model_from_json
+            json_file = open('model.json', 'r')
+            loaded_model_json = json_file.read()
+            json_file.close()
+            loaded_model = model_from_json(loaded_model_json)
+            loaded_model.load_weights("Mahmoud.h5")
+            print("Loaded model from disk")
+            
+#Comments: 1)I've not tested the ResNet on RGB images. Only Greyscale ones (number of channels to be one). 
+             I will try to test it later, and if anyone can test it feel free to pull request the result.
+           2) Feel free to pull request other networks that you tried and worked fine for you and reference the paper on which it's based on. I can be added. 
+              Just remember to add the network using the same pipeline of arguments and outputs.
+           
+
+#Networks:
+        1) Not a famous network, just the one gave the best results for my graduation project
+        2) LeNet
+        3) ResNet
+        
 #######################################################################
 '''
 
@@ -185,7 +233,8 @@ def classify_network_1(x_train,
                        last_layer_activation,
                        labels,
                        checkpointslog,
-                       class_weight):
+                       class_weight,
+                       model_unique_name):
     
     input_shape = (img_rows, img_cols, channels)
     model = Sequential()
@@ -218,9 +267,14 @@ def classify_network_1(x_train,
     confusion_mtx = confusion_matrix(Y_true, Y_pred_classes) 
     plot_confusion_matrix(confusion_mtx, classes = list(labels.values())) 
     plt.show()
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(model_unique_name)
+    print("Saved model to disk")
     
-    
-    
+      
 def classify_network_2(x_train, 
                        y_train, 
                        x_test, 
@@ -235,7 +289,8 @@ def classify_network_2(x_train,
                        last_layer_activation,
                        labels,
                        checkpointslog,
-                       class_weight):
+                       class_weight,
+                       model_unique_name):
     
     INIT_LR = 1e-3
     input_shape = (img_rows, img_cols, channels)
@@ -272,6 +327,12 @@ def classify_network_2(x_train,
     confusion_mtx = confusion_matrix(Y_true, Y_pred_classes) 
     plot_confusion_matrix(confusion_mtx, classes = list(labels.values())) 
     plt.show()
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(model_unique_name)
+    print("Saved model to disk")
 
 
 '''
@@ -279,6 +340,7 @@ def classify_network_2(x_train,
 ResNet
 #######################################################################
 '''
+
 
 def identity_block(X, f, filters, stage, block, middle_layers_activation):
     
@@ -343,7 +405,8 @@ def ResNet(x_train,
            last_layer_activation,
            labels,
            checkpointslog,
-           class_weight):
+           class_weight,
+           model_unique_name):
     
     input_shape = (img_rows, img_cols, channels)
     X_input = Input(input_shape)
@@ -387,6 +450,12 @@ def ResNet(x_train,
     confusion_mtx = confusion_matrix(Y_true, Y_pred_classes)
     plot_confusion_matrix(confusion_mtx, classes = list(labels.values()))
     plt.show()
+    model_json = model.to_json()
+    with open("model.json", "w") as json_file:
+        json_file.write(model_json)
+    # serialize weights to HDF5
+    model.save_weights(model_unique_name)
+    print("Saved model to disk")
     
     
 '''
