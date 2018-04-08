@@ -14,6 +14,7 @@ import random
 import matplotlib.pylab as plt
 import seaborn as sns
 import cv2
+from tqdm import tqdm
 from scipy.misc import imresize, imread
 import sklearn
 from sklearn import model_selection
@@ -23,7 +24,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 import keras
 from keras import backend as K
 from keras.callbacks import Callback, EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
-from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing.image import ImageDataGenerator, img_to_array, load_img
 from keras.utils.np_utils import to_categorical
 from keras.models import Sequential, model_from_json, Model, load_model
 from keras.optimizers import SGD, RMSprop, Adam, Adagrad, Adadelta
@@ -167,6 +168,7 @@ def data_denerator():
 
 '''
 #######################################################################
+
 Classification Networks
 
 # Args:
@@ -457,9 +459,178 @@ def ResNet(x_train,
     model.save_weights(model_unique_name)
     print("Saved model to disk")
     
+####################################################################################
+    
+    
+    
     
 '''
 #######################################################################
-Pre-trained Models
+Using Pre-trained Models
 #######################################################################
 '''
+
+from keras.applications import ResNet50
+from keras.applications import InceptionV3
+from keras.applications import Xception
+from keras.applications import VGG16
+from keras.applications import VGG19
+from keras.applications import imagenet_utils
+from keras.applications.inception_v3 import preprocess_input
+
+
+'''
+MODELS  = {
+	"vgg16": VGG16,
+	"vgg19": VGG19,
+	"inception": InceptionV3,
+	"xception": Xception,
+	"resnet": ResNet50
+}
+'''
+ 
+
+def preprocess_image_pretrained(inputs, network):
+    
+    inputShape = (224, 224)
+    preprocess = imagenet_utils.preprocess_input
+    img_output = []
+    
+    if network in ("inception", "xception"):
+    	inputShape = (299, 299)
+    	preprocess = preprocess_input
+        
+    for img in inputs:
+        image = load_img(img, target_size=inputShape)
+        image = img_to_array(image)
+        image = np.expand_dims(image, axis=0)
+        image = preprocess(image)
+        img_output.append(image)
+        
+    return img_out
+
+
+def vgg_16_pretrained(inputs):
+    
+    Network = VGG16
+    model = Network(weights="imagenet")
+    img_input = preprocess_image_pretrained(inputs, 'vgg16')
+    predictions = []
+    
+    for img in img_input:
+        pres = mode.predict(img)
+        P = imagenet_utils.decode_predictions(preds)
+        (imagenetID, label, prob) = P[0][0]
+        predictions.append([np.array(img), label])
+        orig = cv2.imread(inputs[img])
+        cv2.putText(orig, "Label: {}, {:.2f}%".format(label, prob * 100), 
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.imshow("Classification", orig)
+        cv2.waitKey(0)
+    
+    return predictions
+
+
+def vgg_19_pretrained(inputs):
+    
+    Network = VGG19
+    model = Network(weights="imagenet")
+    img_input = preprocess_image_pretrained(inputs, 'vgg19')
+    predictions = []
+    
+    for img in img_input:
+        pres = mode.predict(img)
+        P = imagenet_utils.decode_predictions(preds)
+        (imagenetID, label, prob) = P[0][0]
+        predictions.append([np.array(img), label])
+        orig = cv2.imread(inputs[img])
+        cv2.putText(orig, "Label: {}, {:.2f}%".format(label, prob * 100), 
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.imshow("Classification", orig)
+        cv2.waitKey(0)
+    
+    return predictions
+
+
+def inception_pretrained(inputs):
+    
+    Network = InceptionV3
+    model = Network(weights="imagenet")
+    img_input = preprocess_image_pretrained(inputs, 'inception')
+    predictions = []
+    
+    for img in img_input:
+        pres = mode.predict(img)
+        P = imagenet_utils.decode_predictions(preds)
+        (imagenetID, label, prob) = P[0][0]
+        predictions.append([np.array(img), label])
+        orig = cv2.imread(inputs[img])
+        cv2.putText(orig, "Label: {}, {:.2f}%".format(label, prob * 100), 
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.imshow("Classification", orig)
+        cv2.waitKey(0)
+    
+    return predictions
+
+
+def xception_pretrained(inputs):
+    
+    Network = Xception
+    model = Network(weights="imagenet")
+    img_input = preprocess_image_pretrained(inputs, 'xception')
+    predictions = []
+    
+    for img in img_input:
+        pres = mode.predict(img)
+        P = imagenet_utils.decode_predictions(preds)
+        (imagenetID, label, prob) = P[0][0]
+        predictions.append([np.array(img), label])
+        orig = cv2.imread(inputs[img])
+        cv2.putText(orig, "Label: {}, {:.2f}%".format(label, prob * 100), 
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.imshow("Classification", orig)
+        cv2.waitKey(0)
+    
+    return predictions
+
+
+def resnet_pretrained(inputs):
+    
+    Network = ResNet50
+    model = Network(weights="imagenet")
+    img_input = preprocess_image_pretrained(inputs, 'resnet')
+    predictions = []
+    
+    for img in img_input:
+        pres = mode.predict(img)
+        P = imagenet_utils.decode_predictions(preds)
+        (imagenetID, label, prob) = P[0][0]
+        predictions.append([np.array(img), label])
+        orig = cv2.imread(inputs[img])
+        cv2.putText(orig, "Label: {}, {:.2f}%".format(label, prob * 100), 
+                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+        cv2.imshow("Classification", orig)
+        cv2.waitKey(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
